@@ -1,0 +1,598 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ElectronicsTech Bus</title>
+  <style>
+    :root{
+      --bg0:#000000;          /* ✅ black */
+      --bg1:#05070b;
+      --bg2:#0b1a2e;          /* ✅ dark blue */
+      --card:rgba(17,24,36,.88);
+      --card2:rgba(13,18,28,.82);
+      --text:#e6edf3;
+      --muted:#9aa4b2;
+      --muted2:#6b7280;
+      --ok:#22c55e;
+      --bad:#ef4444;
+      --warn:#f59e0b;
+      --info:#38bdf8;
+      --line:rgba(255,255,255,.08);
+      --line2:rgba(255,255,255,.12);
+      --shadow:0 18px 45px rgba(0,0,0,.45);
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      --r:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+
+      /* ✅ Black -> dark blue fade + subtle glow */
+      background:
+        radial-gradient(1100px 700px at 20% -10%, rgba(56,189,248,.16), transparent 55%),
+        radial-gradient(900px 650px at 85% 0%, rgba(34,197,94,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 35%, var(--bg2) 100%);
+    }
+
+    /* ===== Header ===== */
+    header{
+      position:sticky; top:0; z-index:10;
+      border-bottom:1px solid var(--line);
+      background:rgba(6,8,12,.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .head-inner{
+      padding:14px 14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      max-width:1400px;
+      margin:0 auto;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      min-width:260px;
+    }
+    .logo{
+      width:34px; height:34px; border-radius:12px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(56,189,248,.9), rgba(56,189,248,.15) 55%, rgba(255,255,255,.06) 70%),
+        linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 10px 30px rgba(56,189,248,.12);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:-30%;
+      background: conic-gradient(from 120deg, rgba(34,197,94,.0), rgba(34,197,94,.35), rgba(56,189,248,.0));
+      opacity:.35;
+      transform: rotate(18deg);
+    }
+    .brand-title{
+      display:flex; flex-direction:column; gap:2px;
+      line-height:1.1;
+    }
+    .brand-title b{ font-size:14px; letter-spacing:.3px; }
+    .brand-title span{ font-size:11px; color:var(--muted); }
+
+    .grow{ flex:1; }
+
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+      white-space:nowrap;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background:var(--bad);
+      box-shadow:0 0 18px rgba(239,68,68,.45);
+    }
+    .dot.ok{ background:var(--ok); box-shadow:0 0 18px rgba(34,197,94,.45); }
+    .dot.warn{ background:var(--warn); box-shadow:0 0 18px rgba(245,158,11,.45); }
+
+    .btn{
+      cursor:pointer;
+      user-select:none;
+      padding:9px 11px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      font-size:12px;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease;
+    }
+    .btn:hover{ background:rgba(255,255,255,.06); border-color:var(--line2); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(56,189,248,.25);
+      background: rgba(56,189,248,.10);
+    }
+
+    /* ===== Layout ===== */
+    main{
+      padding:14px;
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1fr;       /* mobile */
+      max-width:1400px;                 /* ✅ wider for PC */
+      margin:0 auto;
+    }
+
+    /* ✅ PC: make devices panel bigger than log */
+    @media (min-width: 1050px){
+      main{
+        grid-template-columns: 1.25fr 0.75fr; /* ✅ bigger left column */
+      }
+    }
+
+    .card{
+      background:rgba(17,24,36,.86);
+      border:1px solid var(--line);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+    }
+    .card-head h2{
+      margin:0;
+      font-size:13px;
+      letter-spacing:.45px;
+      color:var(--muted);
+      display:flex; align-items:center; gap:10px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .pill b{ color:var(--text); font-weight:650; }
+    .pill .mini{ width:7px; height:7px; border-radius:999px; background:var(--info); box-shadow:0 0 14px rgba(56,189,248,.4); }
+
+    /* ===== Summary Tiles ===== */
+    .tiles{
+      padding:12px;
+      display:grid;
+      gap:10px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (min-width: 520px){
+      .tiles{ grid-template-columns: repeat(4, 1fr); }
+    }
+    .tile{
+      background:var(--card2);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+      display:flex; flex-direction:column; gap:6px;
+      min-height:76px;
+    }
+    .tile .k{ font-size:11px; color:var(--muted); letter-spacing:.25px; }
+    .tile .v{ font-size:18px; font-weight:750; letter-spacing:.2px; }
+    .tile .s{ font-size:11px; color:var(--muted2); display:flex; align-items:center; gap:8px; }
+    .spark{
+      height:6px; border-radius:999px;
+      background:rgba(255,255,255,.06);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.06);
+      flex:1;
+      min-width:80px;
+    }
+    .spark > i{
+      display:block; height:100%;
+      width:40%;
+      background: linear-gradient(90deg, rgba(56,189,248,.0), rgba(56,189,248,.8));
+      border-radius:999px;
+      filter: drop-shadow(0 0 10px rgba(56,189,248,.25));
+    }
+
+    /* ===== Table ===== */
+    .table-wrap{ overflow:auto; }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+    }
+    th, td{
+      padding:11px 12px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      vertical-align:top;
+      white-space:nowrap;
+    }
+    th{
+      color:var(--muted);
+      font-weight:650;
+      position:sticky; top:0;
+      background: rgba(6,8,12,.62);
+      backdrop-filter: blur(10px);
+    }
+    tr:hover td{ background: rgba(255,255,255,.02); }
+    .mono{ font-family:var(--mono); }
+    .small{ color:var(--muted); font-size:11px; }
+
+    /* ===== Log ===== */
+    pre{
+      margin:0;
+      padding:12px;
+      height:520px; /* ✅ bigger on PC too */
+      overflow:auto;
+      background:rgba(0,0,0,.23);
+      font-family:var(--mono);
+      font-size:11px;
+      line-height:1.45;
+    }
+    @media (max-width: 600px){
+      pre{ height:420px; }
+    }
+
+    .controls{
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      border-top:1px solid var(--line);
+      background: rgba(255,255,255,.015);
+    }
+    input{
+      flex:1;
+      min-width:220px;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 11px;
+      font-size:12px;
+      outline:none;
+    }
+    input:focus{
+      border-color: rgba(56,189,248,.35);
+      box-shadow: 0 0 0 3px rgba(56,189,248,.08);
+    }
+
+    /* Footer note */
+    .footer{
+      padding:10px 14px;
+      border-top:1px solid var(--line);
+      color:var(--muted2);
+      font-size:11px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .footer a{ color:rgba(56,189,248,.9); text-decoration:none; }
+    .footer a:hover{ text-decoration:underline; }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="head-inner">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="brand-title">
+        <b>ElectronicsTech Bus</b>
+        <span>ET-Bus • Live Monitor</span>
+      </div>
+    </div>
+
+    <div class="chip" title="Websocket subscription status">
+      <div id="statusDot" class="dot"></div>
+      <span id="statusText">disconnected</span>
+    </div>
+
+    <div class="grow"></div>
+
+    <div class="chip"><span class="small">msgs</span>&nbsp;<b id="msgCount">0</b></div>
+    <div class="chip"><span class="small">devices</span>&nbsp;<b id="devCount">0</b></div>
+
+    <button class="btn" id="btnClear" title="Clear the log window">Clear</button>
+    <button class="btn primary" id="btnPause" title="Pause / resume live scrolling">Pause</button>
+  </div>
+</header>
+
+<main>
+  <!-- Left: Devices -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Devices (live)</h2>
+      <div class="pill"><span class="mini"></span><span class="small">Event</span>&nbsp;<b class="mono">etbus_message</b></div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <div class="k">Status</div>
+        <div class="v" id="tileStatus">—</div>
+        <div class="s"><span class="spark"><i id="sparkA"></i></span><span id="tileHint">waiting…</span></div>
+      </div>
+      <div class="tile">
+        <div class="k">Messages</div>
+        <div class="v" id="tileMsgs">0</div>
+        <div class="s">live stream</div>
+      </div>
+      <div class="tile">
+        <div class="k">Devices Seen</div>
+        <div class="v" id="tileDevs">0</div>
+        <div class="s">unique ids</div>
+      </div>
+      <div class="tile">
+        <div class="k">Last Message</div>
+        <div class="v" id="tileLast">—</div>
+        <div class="s">time ago</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Device</th>
+            <th>Class</th>
+            <th>Last Seen</th>
+            <th>IP</th>
+            <th>RSSI</th>
+            <th>Uptime</th>
+          </tr>
+        </thead>
+        <tbody id="devBody"></tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      <div>© <a href="https://electronicstech.co.nz" target="_blank" rel="noreferrer">electronicstech.co.nz</a></div>
+    </div>
+  </section>
+
+  <!-- Right: Log -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Stream Log</h2>
+      <div class="pill"><span class="small">Real-time filter</span></div>
+    </div>
+    <pre id="log"></pre>
+    <div class="controls">
+      <input id="filter" placeholder="Filter… (air1, sensor.co2, pong, command)" />
+      <button class="btn" id="btnCopy">Copy</button>
+    </div>
+    <div class="footer">
+      <div class="small">Log auto-trims to stay fast.</div>
+      <div class="small mono" id="buildTag">ui-1.1</div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const logEl = document.getElementById("log");
+  const devBody = document.getElementById("devBody");
+  const statusDot = document.getElementById("statusDot");
+  const statusText = document.getElementById("statusText");
+
+  const msgCountEl = document.getElementById("msgCount");
+  const devCountEl = document.getElementById("devCount");
+  const filterEl = document.getElementById("filter");
+  const btnClear = document.getElementById("btnClear");
+  const btnPause = document.getElementById("btnPause");
+  const btnCopy = document.getElementById("btnCopy");
+
+  const tileStatus = document.getElementById("tileStatus");
+  const tileMsgs = document.getElementById("tileMsgs");
+  const tileDevs = document.getElementById("tileDevs");
+  const tileLast = document.getElementById("tileLast");
+  const tileHint = document.getElementById("tileHint");
+  const sparkA = document.getElementById("sparkA");
+
+  let paused = false;
+  let msgCount = 0;
+  let lastMsgTs = 0;
+
+  const devices = new Map();
+
+  function setStatus(kind, text) {
+    statusDot.classList.remove("ok","warn");
+    if (kind === "ok") statusDot.classList.add("ok");
+    else if (kind === "warn") statusDot.classList.add("warn");
+    statusText.textContent = text;
+
+    tileStatus.textContent = (kind === "ok") ? "Online" : (kind === "warn") ? "Waiting" : "Offline";
+    tileHint.textContent = text;
+  }
+
+  function nowTs(){ return Date.now(); }
+
+  function fmtAgo(ms){
+    const s = Math.floor(ms / 1000);
+    if (s < 2) return "now";
+    if (s < 60) return s + "s";
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + "m";
+    const h = Math.floor(m / 60);
+    return h + "h";
+  }
+
+  function appendLog(line){
+    if (paused) return;
+
+    const f = (filterEl.value || "").trim().toLowerCase();
+    if (f && !line.toLowerCase().includes(f)) return;
+
+    logEl.textContent += line + "\n";
+
+    if (logEl.textContent.length > 160000){
+      logEl.textContent = logEl.textContent.slice(-115000);
+    }
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function renderDevices(){
+    const rows = [];
+    const now = nowTs();
+
+    for (const [id, d] of devices.entries()){
+      const ago = d.lastSeen ? fmtAgo(now - d.lastSeen) : "-";
+      const rssi = (d.rssi === undefined || d.rssi === null) ? "-" : d.rssi;
+      const up = (d.uptime === undefined || d.uptime === null) ? "-" : d.uptime + "s";
+
+      rows.push(`
+        <tr>
+          <td class="mono"><b>${id}</b></td>
+          <td class="mono">${d.cls || "-"}</td>
+          <td>${ago}</td>
+          <td class="mono">${d.ip || "-"}</td>
+          <td class="mono">${rssi}</td>
+          <td class="mono">${up}</td>
+        </tr>
+      `);
+    }
+
+    devBody.innerHTML = rows.join("") || `
+      <tr><td colspan="6" class="small" style="padding:14px">No ET-Bus messages yet…</td></tr>
+    `;
+
+    devCountEl.textContent = String(devices.size);
+    tileDevs.textContent = String(devices.size);
+
+    tileMsgs.textContent = String(msgCount);
+
+    if (lastMsgTs){
+      tileLast.textContent = fmtAgo(now - lastMsgTs);
+      const w = Math.min(100, Math.max(8, Math.floor((msgCount % 30) * 3.3)));
+      sparkA.style.width = w + "%";
+    } else {
+      tileLast.textContent = "—";
+      sparkA.style.width = "18%";
+    }
+  }
+
+  function getHassFromParent(){
+    const p = window.parent;
+    try{
+      const ha =
+        p.document.querySelector("home-assistant") ||
+        p.document.querySelector("home-assistant-main") ||
+        p.document.querySelector("home-assistant-app");
+      return (ha && ha.hass) ? ha.hass : null;
+    }catch(e){
+      return null;
+    }
+  }
+
+  async function subscribe(){
+    const hass = getHassFromParent();
+    if (!hass || !hass.connection){
+      setStatus("warn","waiting for hass…");
+      setTimeout(subscribe, 700);
+      return;
+    }
+
+    setStatus("ok","connected");
+    appendLog(`[ui] connected to hass websocket`);
+
+    try{
+      await hass.connection.subscribeEvents((ev) => {
+        const data = ev.data || {};
+        msgCount++;
+        lastMsgTs = nowTs();
+
+        msgCountEl.textContent = String(msgCount);
+
+        const id = data.id || "?";
+        const cls = data.class || data.cls || "";
+        const type = data.type || "";
+        const ip = data._src_ip || "";
+        const rx = data._rx_ts ? Math.floor(data._rx_ts * 1000) : nowTs();
+
+        if (id && id !== "hub"){
+          const prev = devices.get(id) || { id };
+          const next = {
+            id,
+            cls: cls || prev.cls,
+            ip: ip || prev.ip,
+            lastSeen: rx,
+            rssi: (data.payload && data.payload.rssi !== undefined) ? data.payload.rssi : prev.rssi,
+            uptime: (data.payload && data.payload.uptime !== undefined) ? data.payload.uptime : prev.uptime,
+          };
+          devices.set(id, next);
+          renderDevices();
+        }
+
+        const line = `[${new Date().toLocaleTimeString()}] ${id} ${type} ${cls} ` + JSON.stringify(data.payload || {});
+        appendLog(line);
+      }, "etbus_message");
+    }catch(e){
+      setStatus("warn","subscribe failed");
+      appendLog(`[ui] subscribe failed: ${e}`);
+      setTimeout(subscribe, 1200);
+      return;
+    }
+
+    setInterval(renderDevices, 1000);
+  }
+
+  btnClear.onclick = () => { logEl.textContent = ""; };
+
+  btnPause.onclick = () => {
+    paused = !paused;
+    btnPause.textContent = paused ? "Resume" : "Pause";
+    setStatus(paused ? "warn" : "ok", paused ? "paused" : "connected");
+  };
+
+  // ✅ Copy with fallback (HA iframe safe)
+  btnCopy.onclick = async () => {
+    const text = logEl.textContent || "";
+    try{
+      await navigator.clipboard.writeText(text);
+      appendLog("[ui] copied to clipboard");
+      return;
+    }catch(_){
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        appendLog("[ui] copied to clipboard (fallback)");
+      }catch(__){
+        appendLog("[ui] clipboard blocked");
+      }
+    }
+  };
+
+  renderDevices();
+  subscribe();
+})();
+</script>
+</body>
+</html>
