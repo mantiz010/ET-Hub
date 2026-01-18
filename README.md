@@ -281,7 +281,7 @@ void setup() {
 void loop() {
   etbus.loop();
 }
-
+}
 ## Repository Structure
 
 This integration lives inside Home Assistant as a custom component:
