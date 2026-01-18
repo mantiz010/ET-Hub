@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -7,7 +8,7 @@ from .const import DOMAIN
 from .hub import EtBusHub
 from .panel import async_setup_panel, async_unload_panel
 
-PLATFORMS: list[str] = ["light", "switch", "fan", "sensor"]
+PLATFORMS: list[str] = ["sensor", "switch", "light", "fan"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -21,7 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = hub
 
-    # ✅ Register sidebar panel ONCE
+    # Panel once
     if not hass.data.get(f"{DOMAIN}_panel_loaded"):
         await async_setup_panel(hass)
         hass.data[f"{DOMAIN}_panel_loaded"] = True
@@ -36,7 +37,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hub: EtBusHub = hass.data[DOMAIN].pop(entry.entry_id)
     await hub.async_stop()
 
-    # ✅ Remove panel if last instance removed
     if not hass.data[DOMAIN]:
         await async_unload_panel(hass)
         hass.data.pop(f"{DOMAIN}_panel_loaded", None)
