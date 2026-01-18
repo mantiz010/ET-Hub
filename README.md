@@ -281,6 +281,15 @@ void setup() {
 void loop() {
   etbus.loop();
 }
+
+
+
+
+
+
+
+
+
 custom_components/etbus/
 ├── __init__.py
 ├── manifest.json
@@ -295,19 +304,3 @@ custom_components/etbus/
     └── etbus.html
 
 
----
-
-### ✅ What this gives you
-- Professional ESPHome-style README
-- Arduino-first (no PlatformIO confusion)
-- Clear ET-Bus vs ESPHome vs MQTT positioning
-- Ready for GitHub + HACS prep
-- No broken diagrams or markdown issues
-
-If you want next (optional):
-- `README_HACS.md`
-- `docs/ARCHITECTURE.md`
-- Protocol versioning & changelog
-- SVG diagrams for GitHub Pages
-
-Say the word — **go eat and sleep first though 😄**
