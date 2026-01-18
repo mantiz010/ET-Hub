@@ -282,25 +282,8 @@ void loop() {
   etbus.loop();
 }
 
+## Repository Structure
 
-
-
-
-
-
-
-
-custom_components/etbus/
-├── __init__.py
-├── manifest.json
-├── const.py
-├── hub.py
-├── sensor.py
-├── switch.py
-├── light.py
-├── fan.py
-├── panel.py
-└── www/
-    └── etbus.html
+This integration lives inside Home Assistant as a custom component:
 
 
