@@ -2,27 +2,34 @@
 
 ET-Bus is a **low-latency local control bus** for ESP-class devices tightly integrated with **Home Assistant**.
 
-It is designed for **fast, reliable physical control** (relays, pumps, fans, RGB lights, sensors) on a local LAN, without a broker, cloud service, or persistent sessions.
+It is designed for **fast, reliable physical control** (relays, pumps, fans, RGB lights, sensors) on a local LAN, **without a broker, cloud service, or persistent sessions**.
 
 ET-Bus prioritizes **state correctness over protocol complexity**.
+
+GitHub: https://github.com/mantiz010/ET-Hub
 
 ---
 
 ## Why ET-Bus Exists
 
-Many existing solutions optimize for configuration convenience or protocol purity.  
+Many existing solutions optimize for configuration convenience or protocol purity.
+
 ET-Bus is optimized for **engineering reality**:
 
 - Wi-Fi drops packets
 - ESPs reboot
 - Home Assistant restarts
-- Physical devices must still behave correctly
+- Physical devices **must still behave correctly**
 
 ET-Bus is built around one core rule:
 
-> **The ESP publishes the truth. Home Assistant retries until it sees that truth.**
+> **The ESP publishes the truth.  
+> Home Assistant retries until it sees that truth.**
 
-There are no retained commands, no ACK packets, and no hidden state.
+There are:
+- no retained commands
+- no ACK packets
+- no hidden or duplicated state
 
 ---
 
@@ -30,7 +37,7 @@ There are no retained commands, no ACK packets, and no hidden state.
 
 - ⚡ **Very low latency**
   - UDP unicast commands
-  - Typical relay response < 10–20 ms on LAN
+  - Typical relay response **< 10–20 ms** on LAN
 - 🔁 **State-based QoS**
   - Retries stop automatically when state confirms
   - No ACK packets required
@@ -56,37 +63,46 @@ There are no retained commands, no ACK packets, and no hidden state.
 
 ## Design Philosophy
 
-ET-Bus is deliberately **asymmetric**:
+ET-Bus is **intentionally asymmetric**.
 
-### ESP devices
-- Publish discover messages
-- Publish state messages
+### ESP devices do:
+- Publish `discover`
+- Publish `state`
 - Apply hardware
-- Never retry commands
-- Never maintain sessions
+- Publish state after every change
 
-### Home Assistant
-- Creates entities dynamically
-- Sends commands
-- Implements QoS retries
-- Treats ESP state as authoritative
+### ESP devices do NOT:
+- Retry commands
+- Track QoS
+- Maintain sessions
+- Store Home Assistant state
 
-This separation keeps firmware **small, stable, and deterministic**.
+### Home Assistant does:
+- Create entities dynamically
+- Send commands
+- Implement QoS retries
+- Treat ESP state as authoritative
+
+This keeps firmware:
+- small
+- deterministic
+- easy to debug
+- robust against reboots
 
 ---
 
 ## System Architecture
 
-High-level flow:
-
-### Transport Summary
+### Transport model
 
 - **UDP multicast**
-  - Device discovery
+  - Discovery
   - State fan-out
 - **UDP unicast**
   - Commands only
   - Lowest possible latency
+
+### High-level flow
 
 ---
 
@@ -102,21 +118,21 @@ High-level flow:
 6. UI becomes available immediately
 
 There is:
-- no provisioning step
+- no provisioning
 - no pairing
 - no retained configuration
-- no dependency on HA startup order
+- no dependency on startup order
 
 ---
 
 ## Command & Confirmation Flow (Relay Example)
 
 1. User toggles a switch in Home Assistant
-2. HA entity sends a **unicast command**
+2. HA entity sends **unicast command**
 3. ESP:
    - receives command
    - applies GPIO
-   - publishes multicast state
+   - publishes multicast `state`
 4. HA sees matching state
 5. QoS retries stop immediately
 
@@ -128,137 +144,153 @@ There is **no ACK packet**.
 
 ## QoS Model (Home Assistant Side)
 
-QoS is implemented entirely inside Home Assistant entities.
+QoS is implemented **entirely inside Home Assistant entities**.
 
 ### How it works
-- When a command is issued:
-  - HA starts a retry loop
-  - Each retry sends the same unicast command
-- When a matching state arrives:
-  - retries stop immediately
-- If confirmation never arrives:
-  - retries stop after a hard timeout
+
+- Command issued
+- Retry loop starts
+- Each retry sends the **same unicast command**
+- When a matching state arrives → **stop retries**
+- If confirmation never arrives → stop after hard timeout
 
 ### Example Retry Schedule
+
 (Default values, configurable)
 
-- 0 ms
-- 50 ms
-- 150 ms
-- 300 ms
-- 600 ms
-- hard stop at ~2000 ms
 
-This gives:
-- instant UI feedback
-- resilience to packet loss
-- no duplicated actions
+This provides:
+- instant UI response
+- tolerance to packet loss
+- no duplicate actions
 
 ---
 
 ## Failure Modes & Recovery
 
 | Scenario | Behaviour | Result |
-|-------|----------|--------|
-| UDP packet lost | HA retries | Command still succeeds |
+|--------|----------|--------|
+| UDP packet lost | HA retries | Command succeeds |
 | ESP reboots | ESP re-announces | HA converges |
 | HA restarts | Hub restarts | Entities reappear |
-| Wi-Fi hiccup | QoS retries | Temporary delay only |
+| Wi-Fi hiccup | QoS retries | Temporary delay |
 | Multicast blocked | No discover/state | Devices invisible until fixed |
 
-ET-Bus fails **safe and visible**, not silently.
+Failures are **visible and recoverable**, not silent.
 
 ---
 
 ## ET-Bus vs ESPHome vs MQTT
 
+### Architecture Comparison
+
 | Feature | ET-Bus | ESPHome API | MQTT |
 |------|------|------------|------|
 | Latency | **Very low** | Medium | Medium–High |
-| Architecture | Direct LAN | API session | Broker |
-| QoS model | State-based | Implicit | Broker-based |
+| Transport | UDP | TCP | TCP |
+| Sessions | ❌ | ✅ | ✅ |
 | Broker required | ❌ | ❌ | ✅ |
-| Cloud required | ❌ | ❌ | ❌ |
+| QoS model | State-based | Implicit | Broker-based |
 | Offline recovery | Automatic | Limited | Depends on retain |
-| Firmware complexity | Low | Medium | High |
+| Firmware size | **Small** | Medium | Large |
+| Debug simplicity | **High** | Medium | Low |
 
-### When ET-Bus is the right choice
+### Practical Differences
+
+**ESPHome**
+- Excellent YAML experience
+- API sessions can stall on reconnects
+- Larger firmware footprint
+
+**MQTT**
+- Extremely flexible
+- Broker adds latency and failure surface
+- Retained messages can cause stale state
+
+**ET-Bus**
+- Optimized for **physical correctness**
+- No sessions
+- No broker
+- State is always truth
+- Minimal firmware
+
+---
+
+## When ET-Bus Is the Right Choice
+
 - Relays
 - Pumps
 - Fans
 - RGB lighting
-- Any device where **physical correctness matters more than protocol semantics**
+- Sensors where **physical correctness > protocol elegance**
+- Systems that must recover cleanly after reboots
 
 ---
 
-## Home Assistant Integration
+## Arduino ESP Firmware (NOT PlatformIO)
 
-ET-Bus is implemented as a **custom Home Assistant integration**.
+ET-Bus is designed to work cleanly with the **Arduino IDE**.
 
-It provides:
-- `switch.py`
-- `light.py`
-- `fan.py`
-- `sensor.py`
-- central `hub.py`
-- optional sidebar UI (HTML)
+### Requirements
 
-Entities are created dynamically based on ESP messages.
+- ESP32 or ESP8266
+- Arduino IDE
+- Wi-Fi network
+- Home Assistant on the same LAN
 
-No YAML configuration is required for devices.
+### Installing the ETBus Arduino Library
 
----
+1. Clone or download:
+2. Copy the `ETBus` folder into:
+3. Restart Arduino IDE
+4. Include the library:
+```cpp
+#include <ETBus.h>
+#include <WiFi.h>
+#include <ETBus.h>
 
-## ESP Firmware Model
+static const char* WIFI_SSID = "your_wifi";
+static const char* WIFI_PASS = "your_pass";
+static const int RELAY_PIN = 26;
 
-ESP firmware responsibilities:
-- connect to Wi-Fi
-- publish `discover`
-- publish `state`
-- apply hardware changes
-- publish state after every change
+ETBus etbus;
+bool relayOn = false;
 
-ESP firmware does **not**:
-- retry commands
-- track QoS
-- maintain sessions
-- store HA state
+void applyRelay(bool on) {
+  relayOn = on;
+  digitalWrite(RELAY_PIN, on ? HIGH : LOW);
+  etbus.sendSwitchState(relayOn);
+}
 
-This keeps firmware:
-- small
-- predictable
-- easy to debug
-- resilient to restarts
+void onCommand(const char*, JsonObject payload) {
+  if (payload.containsKey("on")) {
+    applyRelay(payload["on"]);
+  }
+}
 
----
+void setup() {
+  pinMode(RELAY_PIN, OUTPUT);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(100);
 
-## Repository Structure
+  etbus.begin("relay1", "switch.relay", "Relay 1", "1.0");
+  etbus.onCommand(onCommand);
+  etbus.sendSwitchState(relayOn);
+}
 
-
----
-
-## Project Status
-
-- Actively developed
-- Used in real systems
-- Designed for LAN reliability
-- API stable but evolving
-- Not yet a default HACS integration
-
----
-
-## Future Work
-
-- HACS packaging
-- SVG architecture diagrams
-- Protocol changelog
-- Optional encryption layer
-- Extended diagnostics UI
-
----
-
-## Links
-
-- GitHub: https://github.com/mantiz010/ET-Hub
-- Author: ElectronicsTech
+void loop() {
+  etbus.loop();
+}
+custom_components/etbus/
+├── __init__.py
+├── manifest.json
+├── const.py
+├── hub.py
+├── sensor.py
+├── switch.py
+├── light.py
+├── fan.py
+├── panel.py
+└── www/
+    └── etbus.html
 
