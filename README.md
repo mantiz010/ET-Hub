@@ -289,7 +289,3 @@ void loop() {
 }
 
 
-Notes:
-- `custom_components/etbus/www/etbus.html` is served by `panel.py` inside Home Assistant.
-- QoS retry logic lives in Home Assistant entities (switch/light/fan), not on the ESP.
-- ESP devices only apply hardware and publish state (state is confirmation).
