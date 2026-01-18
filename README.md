@@ -281,7 +281,7 @@ void setup() {
 void loop() {
   etbus.loop();
 }
-}
+
 ## Repository Structure
 
 This integration lives inside Home Assistant as a custom component:
@@ -291,4 +291,3 @@ Notes:
 - `www/etbus.html` is served from inside the integration (no `/local/` required).
 - QoS retry logic lives in Home Assistant entities (switch/light/fan), not on the ESP.
 - ESP devices only apply hardware and publish state (state is confirmation).
-
