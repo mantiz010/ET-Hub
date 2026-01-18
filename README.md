@@ -244,8 +244,10 @@ ET-Bus is designed to work cleanly with the **Arduino IDE**.
 2. Copy the `ETBus` folder into:
 3. Restart Arduino IDE
 4. Include the library:
+
+## Minimal Relay Example (Arduino)
+
 ```cpp
-#include <ETBus.h>
 #include <WiFi.h>
 #include <ETBus.h>
 
@@ -259,35 +261,30 @@ bool relayOn = false;
 void applyRelay(bool on) {
   relayOn = on;
   digitalWrite(RELAY_PIN, on ? HIGH : LOW);
-  etbus.sendSwitchState(relayOn);
+  etbus.sendSwitchState(relayOn); // ESP publishes truth
 }
 
 void onCommand(const char*, JsonObject payload) {
   if (payload.containsKey("on")) {
-    applyRelay(payload["on"]);
+    applyRelay((bool)payload["on"]);
   }
 }
 
 void setup() {
   pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
+
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   while (WiFi.status() != WL_CONNECTED) delay(100);
 
   etbus.begin("relay1", "switch.relay", "Relay 1", "1.0");
   etbus.onCommand(onCommand);
+
+  // publish initial state
   etbus.sendSwitchState(relayOn);
 }
 
 void loop() {
-  etbus.loop();
+  etbus.loop(); // handle network + incoming commands
 }
 
-## Repository Structure
-
-This integration lives inside Home Assistant as a custom component:
-
-
-Notes:
-- `www/etbus.html` is served from inside the integration (no `/local/` required).
-- QoS retry logic lives in Home Assistant entities (switch/light/fan), not on the ESP.
-- ESP devices only apply hardware and publish state (state is confirmation).
